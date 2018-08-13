@@ -1,12 +1,9 @@
 package utils;
 
-import static org.junit.Assert.assertNotNull;
-
 import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
 
-import org.slf4j.impl.StaticMDCBinder;
 
 public class Base64Util {
     

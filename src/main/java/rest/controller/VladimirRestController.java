@@ -24,7 +24,7 @@ import utils.RSAUtil;
 public class VladimirRestController {
 
     private static final String RESOURCE_DIR = "./src/main/resources/";
-    
+
     @RequestMapping(value = "/getconfig", method = RequestMethod.POST)
     public String getConfig(@RequestParam(required = true) String requestJson) {
         return getConfigHelper(requestJson);
@@ -94,7 +94,7 @@ public class VladimirRestController {
             // TODO : logging
             return null;
         }
-        String filename = String.format(RESOURCE_DIR + "rsa_key_%d", version);
+        String filename = String.format(RESOURCE_DIR + "keys/rsa_key_%d", version);
         try {
             File file = new File(filename);
             InputStream inputStream = new FileInputStream(file);
@@ -162,39 +162,43 @@ public class VladimirRestController {
         JSONObject status = new JSONObject();
         JSONObject data = new JSONObject();
 
-        if (null == contentJson) {
-            status.put("status", 400);
-            status.put("msg", "Bad request");
-        } else if (null == contentJson.getString("id")) {
-            status.put("status", 400);
-            status.put("msg", "Bad request, requestId can not be read");
-        } else if (null == contentJson.get("data")) {
-            status.put("status", 400);
-            status.put("msg", "Bad request, data can not be read");
-        } else {
-            try {
-                JSONObject requestDataJson = (JSONObject) contentJson.getJSONObject("data");
-                // response data
-                data.put("timestamp", System.currentTimeMillis());
-                String newRsaKey = this.readRsaKey(2);
-                // encrypt rsa ky by aes
-                String encryptedRsaKey = Base64Util.byteToBase64(
-                        AESUtil.encryptAES(Base64Util.base64ToByte(newRsaKey), AESUtil.loadKeyAES(aesKey)));
-                data.put("rsaPublicKey", encryptedRsaKey);
-                // system config
-                String appId = requestDataJson.getString("appId");
-                data.put("systemConfig", appId);
-                // status code
-                status.put("status", 200);
-                status.put("msg", "OK");
+        try {
 
-            } catch (Exception e) {
+            if (null == contentJson) {
                 status.put("status", 400);
-                status.put("msg", "Bad requet, appId can not be read");
+                status.put("msg", "Bad request");
+            } else if (null == contentJson.getString("id")) {
+                status.put("status", 400);
+                status.put("msg", "Bad request, requestId can not be read");
+            } else if (null == contentJson.get("data")) {
+                status.put("status", 400);
+                status.put("msg", "Bad request, data can not be read");
+            } else {
+                try {
+                    JSONObject requestDataJson = (JSONObject) contentJson.getJSONObject("data");
+                    // response data
+                    data.put("timestamp", System.currentTimeMillis());
+                    String newRsaKey = this.readRsaKey(2);
+                    // encrypt rsa ky by aes
+                    String encryptedRsaKey = Base64Util.byteToBase64(
+                            AESUtil.encryptAES(Base64Util.base64ToByte(newRsaKey), AESUtil.loadKeyAES(aesKey)));
+                    data.put("rsaPublicKey", encryptedRsaKey);
+                    // system config
+                    String appId = requestDataJson.getString("appId");
+                    data.put("systemConfig", appId);
+                    // status code
+                    status.put("status", 200);
+                    status.put("msg", "OK");
+                } catch (Exception e) {
+                    status.put("status", 400);
+                    status.put("msg", "Bad requet, appId can not be read");
+                }
             }
+            responseJson.put("status", status);
+            responseJson.put("data", data);
+        } catch (Exception e) {
+            // TODO: handle exception
         }
-        responseJson.put("status", status);
-        responseJson.put("data", data);
         return responseJson.toString();
     }
 }
