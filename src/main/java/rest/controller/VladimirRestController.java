@@ -1,8 +1,6 @@
 package rest.controller;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.PrivateKey;
@@ -23,11 +21,14 @@ import utils.RSAUtil;
 @RestController
 public class VladimirRestController {
 
-    private static final String RESOURCE_DIR = "./src/main/resources/";
-
     @RequestMapping(value = "/getconfig", method = RequestMethod.POST)
     public String getConfig(@RequestParam(required = true) String requestJson) {
         return getConfigHelper(requestJson);
+    }
+    
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
+    public String test(@RequestParam(required = true) String param) {
+        return param;
     }
 
     /**
@@ -94,10 +95,11 @@ public class VladimirRestController {
             // TODO : logging
             return null;
         }
-        String filename = String.format(RESOURCE_DIR + "keys/rsa_key_%d", version);
+        String filename = String.format("keys/rsa_key_%d", version);
         try {
-            File file = new File(filename);
-            InputStream inputStream = new FileInputStream(file);
+            //File file = new File(filename);
+            this.getClass().getClassLoader().getResourceAsStream("commons/readme.txt");
+            InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(filename);
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
             String read = "";
