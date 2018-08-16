@@ -8,6 +8,7 @@ import rest.controller.VladimirRestController;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 
 @SpringBootApplication
@@ -22,9 +23,11 @@ public class Application {
 //        SpringApplication.run(Application.class, args);
 
         try {
-            byte[] postData = new NetworkSecurity().encrypt(requestJsonStr.getBytes());
+            NetworkSecurity networkSecurity = new NetworkSecurity();
+            byte[] postData = networkSecurity.encrypt(requestJsonStr.getBytes());
 
-            new VladimirRestController().getConfig(new String(postData).split("=")[1]);
+            String responseJson = new VladimirRestController().getConfig(URLDecoder.decode(new String(postData).split("=")[1], "utf-8"));
+            networkSecurity.decrypt(responseJson.getBytes());
         } catch (Exception e) {
             e.printStackTrace();
         }

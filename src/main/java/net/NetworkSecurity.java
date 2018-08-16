@@ -36,7 +36,7 @@ public class NetworkSecurity implements Security {
         }
 //        source = compressToByte(source);
 
-        System.out.println("AES key spec 1:%s" + mKeySpec.toString());
+        System.out.println("AES key spec 1:%s" + Base64.encode(mKeySpec.getKey()));
         RequestJson reqJson = createRequestJson(mKeySpec);
         System.out.println(String.format("AES key spec 2:%s %s", reqJson.mAESKey, reqJson.mAESIv));
 //        LOGGER.d("AES key spec 2`:%s %s", RSACipher.getInstance().encryptWithPublicKeyToBase64(mKeySpec.getKey()), RSACipher.getInstance().encryptWithPublicKeyToBase64(mKeySpec.getKey()));

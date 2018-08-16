@@ -90,29 +90,29 @@ public class VladimirRestController {
      * @return
      */
     private String readRsaKey(int version) {
-        if (1 != version && 2 != version) {
-            // TODO : logging
-            return null;
-        }
-        String filename = String.format(RESOURCE_DIR + "keys/rsa_key_%d", version);
-        try {
-            File file = new File(filename);
-            InputStream inputStream = new FileInputStream(file);
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-            String read = "";
-            StringBuffer stringBuffer = new StringBuffer();
-            while ((read = bufferedReader.readLine()) != null) {
-                stringBuffer.append(read);
-            }
-            inputStream.close();
-            String keystr = stringBuffer.toString();
-            return keystr;
-        } catch (Exception e) {
-            // TODO : logging
-            e.printStackTrace();
-        }
-        return null;
+//        if (1 != version && 2 != version) {
+//            // TODO : logging
+//            return null;
+//        }
+//        String filename = String.format(RESOURCE_DIR + "keys/rsa_key_%d", version);
+//        try {
+//            File file = new File(filename);
+//            InputStream inputStream = new FileInputStream(file);
+//            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+//            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+//            String read = "";
+//            StringBuffer stringBuffer = new StringBuffer();
+//            while ((read = bufferedReader.readLine()) != null) {
+//                stringBuffer.append(read);
+//            }
+//            inputStream.close();
+//            String keystr = stringBuffer.toString();
+//            return keystr;
+//        } catch (Exception e) {
+//            // TODO : logging
+//            e.printStackTrace();
+//        }
+        return "MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAIB6FtudS/hkPU6Kd15T21O6L862FMAPG1m0znA2mKo1kp8E7P3STFiXrUe/59IHw6+i9+jH7ds+4wQknLK9yhwYHNh0vSz06wJAlgZIBxE/dlocykPO+cbwXV66/Alt2tOCppyyz2bl4tw7WWbngGW3yc8AFcKGM3ko+GoSoxs3AgMBAAECgYBso1BayiqoUlLI7Cs91xjaNtEgMTVgpiWReGMr3e6/1ucxkh+4DbDDJRbAWhTzs98T0HFjJFQMFaQvJ6pdNkEEx9VkXc4R8kEqTEjEXS3J0i5bctEnwiec3CP/gTHRL+2dEhozK1JdqFwLcEJF+gcES6ILDjDDdDogtUIlseclYQJBALkUqtsMeTWrRqXYy/OjBlWfNVuqM74Mqsz8ffIaA5pd55frFr3Vwi8GWQaPs8Ox64D6jWkJ03Q3DUSSicLXsMcCQQCxtOtpM6TDs5/0XLkaeaOOcT5GxRLygBWjwW19Y6KxP77H6Mi5nv/QAb3/WJI7z0LftPtYMbpR6uGliBRRarIRAkB0HrFrqZHKyGEU4MZlX90zjyYNEuZP0ObAoZHrecLU8SHCwO6NwDWLB3KHmVVx7IkTbR+XzWBrw7aBVWc1Zdo1AkEAgry+oIQNCKli2W1KBQ9OY+IuVfRw7xWKVhJdEe22aL6kBgDdg6pVO1u8w1oPI49k/J3yeD0FfXTXE2gcwpVDcQJAKLyDKcr4k7uHFEIdHc1JIga4NY3Kh8KKhNB9Weo5LMM2NBEyAdq0MqFKGoeoGTFU7bJsX2ifd94nkymZMnNR6g==";
     }
 
     /**
