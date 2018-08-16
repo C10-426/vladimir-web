@@ -6,3 +6,5 @@ target
 src/main/resources/keys
 src/main/resources/systemConfig
 src/test/java/batch
+.idea
+*.iml
