@@ -27,7 +27,8 @@ public class Application {
             byte[] postData = networkSecurity.encrypt(requestJsonStr.getBytes());
 
             String responseJson = new VladimirRestController().getConfig(URLDecoder.decode(new String(postData).split("=")[1], "utf-8"));
-            networkSecurity.decrypt(responseJson.getBytes());
+            byte[] bytes = networkSecurity.decrypt(responseJson.getBytes());
+            System.out.println("Response Data : \n" + new String(bytes, "UTF-8"));
         } catch (Exception e) {
             e.printStackTrace();
         }

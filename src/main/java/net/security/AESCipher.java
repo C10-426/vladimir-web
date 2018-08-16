@@ -106,7 +106,7 @@ public class AESCipher {
 
         try {
             SecretKeySpec skeySpec = new SecretKeySpec(key, ALGORITHM);
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
             if (iv != null && iv.length == KEY_LEN) {
                 IvParameterSpec ivSpec = new IvParameterSpec(iv);
                 cipher.init(mode, skeySpec, ivSpec);

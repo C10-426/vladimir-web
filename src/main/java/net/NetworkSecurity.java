@@ -42,7 +42,7 @@ public class NetworkSecurity implements Security {
 //        LOGGER.d("AES key spec 2`:%s %s", RSACipher.getInstance().encryptWithPublicKeyToBase64(mKeySpec.getKey()), RSACipher.getInstance().encryptWithPublicKeyToBase64(mKeySpec.getKey()));
         System.out.println(String.format("AES key spec 3:%s %s", reqJson.mAESKey, reqJson.mAESIv));
         System.out.println(String.format("RSA encode request json:%s", reqJson.build()));
-        reqJson.mBase64BodyEncrypted = Base64.encode(AESCipher.getInstance().encrypt(source, mKeySpec.getKey()));
+        reqJson.mBase64BodyEncrypted = Base64.encode(AESCipher.getInstance().encrypt(source, mKeySpec.getKey(), mKeySpec.getIv()));
         String json = reqJson.build().toString();
 //        String json = "{\"d\":\"BakPaPicMXxWdrlW7jrUX\\/HDOoXCYRV3vYEhHaGQG0Z8KkWvG2EZIfbKK2+VBKbofgCsKYVWbX\\/VuwZlgKVUxw==\",\"v\":1,\"k\":\"fdOdXrgR4e34ZzT7nG8p54BxR5tzeuNvwdAXjjzDJN2BrVbrVO3QxPdJGowKbY5+AhdussTiDilQt9SJZgGTp6Frsmtl0MkRxArPV+yVQRgf+QSgxlVaXq3iMAt5WhPZtFGOnkeZMz4HiB\\/GHPNWsUY39ggJmRfYZVqR9y3Pc6o=\"}";
         System.out.println(String.format("RSA encode and gzip request json:%s", json));
@@ -66,7 +66,7 @@ public class NetworkSecurity implements Security {
             mEncryptCode = respJson.c;
             data = Base64.decode(respJson.d);
         }
-        return AESCipher.getInstance().decrypt(data, mKeySpec.getKey());
+        return AESCipher.getInstance().decrypt(data, mKeySpec.getKey(), mKeySpec.getIv());
     }
 
     public int getEncryptCode() {

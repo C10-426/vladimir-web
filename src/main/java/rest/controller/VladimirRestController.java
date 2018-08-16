@@ -1,10 +1,5 @@
 package rest.controller;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.security.PrivateKey;
 
 import javax.crypto.SecretKey;
@@ -16,14 +11,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sun.org.apache.bcel.internal.generic.I2F;
+
+import net.security.AESCipher;
+import net.security.Base64;
+import sun.launcher.resources.launcher;
 import utils.AESUtil;
 import utils.Base64Util;
 import utils.RSAUtil;
 
 @RestController
 public class VladimirRestController {
-
-    private static final String RESOURCE_DIR = "./src/main/resources/";
 
     @RequestMapping(value = "/getconfig", method = RequestMethod.POST)
     public String getConfig(@RequestParam(required = true) String requestJson) {
@@ -47,11 +45,12 @@ public class VladimirRestController {
             JSONObject jsonObject = new JSONObject(json);
             // get aes secret key
             int rsaVersion = jsonObject.getInt("v");
-            String aesKey = this.getAesKey(jsonObject.getString("k"), rsaVersion);
+            String aesKey = this.rsaDecrypt(jsonObject.getString("k"), rsaVersion);
+            String aesIv = this.rsaDecrypt(jsonObject.getString("i"), rsaVersion);
             // get request content
-            JSONObject contentJson = this.readRequestBody(aesKey, jsonObject.getString("d"));
+            JSONObject contentJson = this.readRequestBody(aesKey, aesIv, jsonObject.getString("d"));
             System.out.println(contentJson.toString());
-            return this.buildResponseBody(contentJson, aesKey);
+            return this.buildResponseBody(contentJson, aesKey, aesIv);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -60,27 +59,27 @@ public class VladimirRestController {
     }
 
     /**
-     * Use RSA to decrypt AES key
+     * Use RSA to decrypt AES Key or AES IV
      * 
-     * @param encryptedAESKey
+     * @param source
      * @param rsaVersion
      * @return
      */
-    private String getAesKey(String encryptedAesKey, int rsaVersion) {
+    private String rsaDecrypt(String source, int rsaVersion) {
         String rsaSecretKey = this.readRsaKey(rsaVersion);
         if (StringUtils.isEmpty(rsaSecretKey)) {
             return null;
         }
-        String decryptedAESKeyStr = null;
+        String result = null;
         try {
             PrivateKey privateKey = RSAUtil.stringToPrivateKey(rsaSecretKey);
-            byte[] decryptedAESKeyBytes = RSAUtil.privateDecrypt(Base64Util.base64ToByte(encryptedAesKey), privateKey);
-            decryptedAESKeyStr = Base64Util.byteToBase64(decryptedAESKeyBytes);
+            byte[] decryptedAESKeyBytes = RSAUtil.privateDecrypt(Base64Util.base64ToByte(source), privateKey);
+            result = Base64Util.byteToBase64(decryptedAESKeyBytes);
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-        return decryptedAESKeyStr;
+        return result;
     }
 
     /**
@@ -122,17 +121,18 @@ public class VladimirRestController {
      * @param encryptedRequestJson
      * @return
      */
-    private JSONObject readRequestBody(String aesKey, String encryptedRequestJson) {
+    private JSONObject readRequestBody(String aesKey, String aesIv, String encryptedRequestJson) {
         if (StringUtils.isEmpty(encryptedRequestJson)) {
             // TODO: logging
             return null;
         }
 
-        // decrypt content by aes key
+        // decrypt content by aes key and aes iv
         String requestJson = null;
         try {
-            SecretKey secretKey = AESUtil.loadKeyAES(aesKey);
-            byte[] bytes = AESUtil.decryptAES(Base64Util.base64ToByte(encryptedRequestJson), secretKey);
+            byte[] key = Base64.decode(aesKey);
+            byte[] iv = Base64.decode(aesIv);
+            byte[] bytes = AESCipher.getInstance().decrypt(Base64.decode(encryptedRequestJson), key, iv);
             requestJson = new String(bytes, "UTF-8");
         } catch (Exception e) {
             // TODO: handle exception
@@ -157,11 +157,13 @@ public class VladimirRestController {
      * @param aesKey
      * @return
      */
-    private String buildResponseBody(JSONObject contentJson, String aesKey) {
+    private String buildResponseBody(JSONObject contentJson, String aesKey, String aesIv) {
         JSONObject responseJson = new JSONObject();
+        JSONObject d = new JSONObject();
         JSONObject status = new JSONObject();
         JSONObject data = new JSONObject();
 
+        // 填充d数据
         try {
 
             if (null == contentJson) {
@@ -179,10 +181,7 @@ public class VladimirRestController {
                     // response data
                     data.put("timestamp", System.currentTimeMillis());
                     String newRsaKey = this.readRsaKey(2);
-                    // encrypt rsa ky by aes
-                    String encryptedRsaKey = Base64Util.byteToBase64(
-                            AESUtil.encryptAES(Base64Util.base64ToByte(newRsaKey), AESUtil.loadKeyAES(aesKey)));
-                    data.put("rsaPublicKey", encryptedRsaKey);
+                    data.put("rsaPublicKey", newRsaKey);
                     // system config
                     String appId = requestDataJson.getString("appId");
                     data.put("systemConfig", appId);
@@ -194,10 +193,27 @@ public class VladimirRestController {
                     status.put("msg", "Bad requet, appId can not be read");
                 }
             }
-            responseJson.put("status", status);
-            responseJson.put("data", data);
+            d.put("status", status);
+            d.put("data", data);
+
         } catch (Exception e) {
             // TODO: handle exception
+        }
+
+        // 构建返回数据
+        try {
+            if (status.getInt("status") == 200) {
+                responseJson.put("c", 1);
+                // 加密d
+                byte[] key = Base64.decode(aesKey);
+                byte[] iv = Base64.decode(aesIv);
+                byte[] dBytes = AESCipher.getInstance().encrypt(data.toString().getBytes(), key, iv);
+                responseJson.put("d", Base64.encode(dBytes));
+            } else {
+                responseJson.put("c", 0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return responseJson.toString();
     }
